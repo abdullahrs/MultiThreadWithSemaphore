@@ -7,14 +7,12 @@
 
 // Olusturulacak thread sayisi
 #define thread_count 3
-
-// Prosesleri uygun sirada cagirmak icin gerekli counter
-int counter = 1;
 // Thread arrayi
 pthread_t threads[thread_count];
 // Senkronizasyonu saglayan lock ve dongu degiskenini korumak icin
 // gerekli lock
-sem_t mutex, counter_mutex;
+sem_t mutex;
+int mutex_counter;
 // Thread fonksiyonlari
 void *threadA(void *data);
 void *threadB(void *data);
@@ -26,7 +24,6 @@ int main(int argc, char const *argv[])
 {
     // Semaphore initialization'lari
     sem_init(&mutex, 1, 1);
-    sem_init(&counter_mutex, 1, 1);
     // Thread olusturulmasi
     pthread_create(&threads[2], NULL, threadC, "C");
     pthread_create(&threads[1], NULL, threadB, "B");
@@ -54,89 +51,76 @@ void yazdir(char *data)
 void *threadA(void *d)
 {
     // Tum blocklar isletilene kadar dongu calisiyor
-    // Eger counter 10 olursa tum blocklar isletilmis olur
-    while (counter < 10)
+    // Eger mutex_counter 10 olursa tum blocklar isletilmis olur
+    while (mutex_counter < 10)
     {
-        sem_wait(&mutex);
-        sem_wait(&counter_mutex);
-
-        if (counter == 1)
+        if (mutex_counter == 1)
         {
             yazdir("A1");
-            counter++;
+            sem_post(&mutex);
         }
 
-        if (counter == 4)
+        if (mutex_counter == 4)
         {
             yazdir("A2");
-            counter++;
+            sem_post(&mutex);
         }
 
-        if (counter == 7)
+        if (mutex_counter == 7)
         {
             yazdir("A3");
-            counter++;
+            sem_post(&mutex);
         }
-
-        sem_post(&counter_mutex);
-        sem_post(&mutex);
+        sem_getvalue(&mutex, &mutex_counter);
     }
 }
 void *threadB(void *d)
 {
-    while (counter < 10)
+    // B4 degeri icin mutex_counter < 11 yapiyoruz.
+    while (mutex_counter < 11)
     {
-        sem_wait(&mutex);
-        sem_wait(&counter_mutex);
-
-        if (counter == 2)
+        if (mutex_counter == 2)
         {
             yazdir("B1");
-            counter++;
+            sem_post(&mutex);
         }
-        if (counter == 5)
+        if (mutex_counter == 5)
         {
             yazdir("B2");
-            counter++;
+            sem_post(&mutex);
         }
-        if (counter == 8)
+        if (mutex_counter == 8)
         {
             yazdir("B3");
-            counter++;
+            sem_post(&mutex);
         }
-        if (counter == 10)
+        if (mutex_counter == 10)
         {
             yazdir("B4");
-            counter++;
+            sem_post(&mutex);
         }
-
-        sem_post(&counter_mutex);
-        sem_post(&mutex);
+        sem_getvalue(&mutex, &mutex_counter);
     }
 }
 void *threadC(void *d)
 {
-    while (counter < 10)
+    while (mutex_counter < 10)
     {
-        sem_wait(&mutex);
-        sem_wait(&counter_mutex);
-        if (counter == 3)
+        if (mutex_counter == 3)
         {
             yazdir("C1");
-            counter++;
+            sem_post(&mutex);
         }
-        if (counter == 6)
+        if (mutex_counter == 6)
         {
             yazdir("C2");
-            counter++;
+            sem_post(&mutex);
         }
-        if (counter == 9)
+        if (mutex_counter == 9)
         {
             yazdir("C3");
-            counter++;
+            sem_post(&mutex);
         }
-
-        sem_post(&counter_mutex);
-        sem_post(&mutex);
+        sem_getvalue(&mutex, &mutex_counter);
     }
 }
