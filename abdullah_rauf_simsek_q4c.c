@@ -12,6 +12,7 @@ pthread_t threads[thread_count];
 // Senkronizasyonu saglayan lock ve dongu degiskenini korumak icin
 // gerekli lock
 sem_t mutex;
+// Kod bloklarinin sirayla calismasi icin gerekli
 int mutex_counter;
 // Thread fonksiyonlari
 void *threadA(void *data);
@@ -48,6 +49,8 @@ void yazdir(char *data)
         sleep(1);
     }
 }
+// Diger iki thread ayni yapiya sahip oldugu icin
+// sadece threadA'ya comment yazdim
 void *threadA(void *d)
 {
     // Tum blocklar isletilene kadar dongu calisiyor
@@ -57,6 +60,7 @@ void *threadA(void *d)
         if (mutex_counter == 1)
         {
             yazdir("A1");
+            // sem_post ile mutex'in value'si 1 artiyor.
             sem_post(&mutex);
         }
 
@@ -71,6 +75,8 @@ void *threadA(void *d)
             yazdir("A3");
             sem_post(&mutex);
         }
+        // mutex'in value'si mutex counter'e yazilirki
+        // donguler devam etsin.
         sem_getvalue(&mutex, &mutex_counter);
     }
 }
